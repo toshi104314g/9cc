@@ -95,7 +95,8 @@ Token *tokenize(char *p) {
       continue;
     }
 
-    if (*p == '+' || *p == '-') {
+    if (*p == '+' || *p == '-' || *p == '*' || *p == '/'
+	|| *p == '(' || *p == ')') {
       cur = new_token(TK_RESERVED, cur, p++);
       continue;
     }
@@ -146,6 +147,9 @@ Node *new_node_num(int val) {
   node->val = val;
   return node;
 }
+
+Node *mul();
+Node *primary();
 
 Node *expr() {
   Node *node = mul();
@@ -218,8 +222,6 @@ void gen(Node *node) {
 
   printf("  push rax\n");
 }
-
-
 
 int main(int argc, char **argv) {
   if (argc != 2) {
