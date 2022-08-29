@@ -156,6 +156,12 @@ Token *tokenize(char *p) {
 
 // 抽象構文木のノードの種類
 typedef enum {
+  ND_LE, // <=
+  ND_LT,  // <
+  ND_GE, // >=
+  ND_GT,  // >
+  ND_EQ,  // ==
+  ND_NE, // !=
   ND_ADD, // +
   ND_SUB, // -
   ND_MUL, // *
@@ -189,17 +195,55 @@ Node *new_node_num(int val) {
 }
 
 Node *expr();
+Node *equality();
+Node *relational();
+Node *add();
 Node *mul();
 Node *unary();
 Node *primary();
 
 Node *expr() {
+  Node *node = equality();
+}
+
+Node *equality() {
+  Node *node = relational();
+
+  for (;;) {
+    if (consume("=="))
+      node = new_node(ND_EQ, node, relational());
+    else if (consume("!="))
+      node = new_node(ND_NE, node, relational());
+    else
+      return node;
+  }
+}
+
+Node *relational() {
+  Node *node = add();
+
+  for (;;) {
+    if (consume("<"))
+      node = new_node(ND_LT, node, add());
+    else if (consume("<="))
+      node = new_node(ND_LE, node, add());
+    else if (consume(">"))
+      node = new_node(ND_GT, node, add());
+    else if (consume(">="))
+      node = new_node(ND_GE, node, add());
+    else
+      return node;
+  }
+}
+
+
+Node *add() {
   Node *node = mul();
 
   for (;;) {
-    if (consume((char*)memset(malloc(sizeof(char)),'+',1)))
+    if (consume("+"))
       node = new_node(ND_ADD, node, mul());
-    else if (consume((char*)memset(malloc(sizeof(char)),'-',1)))
+    else if (consume("-"))
       node = new_node(ND_SUB, node, mul());
     else
       return node;
@@ -211,9 +255,9 @@ Node *mul() {
   Node *node = unary();
 
   for (;;) {
-    if (consume((char*)memset(malloc(sizeof(char)),'*',1)))
+    if (consume("*"))
       node = new_node(ND_MUL, node, unary());
-    else if (consume((char*)memset(malloc(sizeof(char)),'/',1)))
+    else if (consume("/"))
       node = new_node(ND_DIV, node, unary());
     else
       return node;
@@ -222,18 +266,18 @@ Node *mul() {
 
 
 Node *unary() {
-  if (consume((char*)memset(malloc(sizeof(char)),'+',1)))
+  if (consume("+"))
     return primary();
-  if (consume((char*)memset(malloc(sizeof(char)),'-',1)))
+  if (consume("-"))
     return new_node(ND_SUB, new_node_num(0), primary());
   return primary();
 }
 
 Node *primary() {
   // 次のトークンが"("なら、"(" expr ")"のはず
-  if (consume((char*)memset(malloc(sizeof(char)),'(',1))) {
+  if (consume("(")) {
     Node *node = expr();
-    expect((char*)memset(malloc(sizeof(char)),')',1));
+    expect(")");
     return node;
   }
 
