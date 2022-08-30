@@ -97,12 +97,13 @@ Token *tokenize(char *p) {
     }
 
     if (*p == '<' || *p == '>') {
-      if (*(++p) == '=') {
-        cur = new_token(TK_RESERVED, cur, p++);
+      if (*(p+1) == '=') {
+        cur = new_token(TK_RESERVED, cur, p);
         cur->len = 2;
+        p=p+2;
         continue;
       }else {
-        cur = new_token(TK_RESERVED, cur, p);
+        cur = new_token(TK_RESERVED, cur, p++);
         cur->len = 1;
         continue;
       }
@@ -110,12 +111,13 @@ Token *tokenize(char *p) {
 
 //=が通ってしまう
     if (*p == '=') {
-      if (*(++p) == '=') {
-        cur = new_token(TK_RESERVED, cur, p++);
+      if (*(p+1) == '=') {
+        cur = new_token(TK_RESERVED, cur, p);
         cur->len = 2;
+        p=p+2;
         continue;
       }else {
-        cur = new_token(TK_RESERVED, cur, p);
+        cur = new_token(TK_RESERVED, cur, p++);
         cur->len = 1;
         continue;
       }
@@ -123,12 +125,13 @@ Token *tokenize(char *p) {
 
 //!が通ってしまう
     if (*p == '!') {
-      if (*(++p) == '=') {
-        cur = new_token(TK_RESERVED, cur, p++);
+      if (*(p+1) == '=') {
+        cur = new_token(TK_RESERVED, cur, p);
         cur->len = 2;
+        p=p+2;
         continue;
       }else {
-        cur = new_token(TK_RESERVED, cur, p);
+        cur = new_token(TK_RESERVED, cur, p++);
         cur->len = 1;
         continue;
       }
@@ -158,8 +161,8 @@ Token *tokenize(char *p) {
 typedef enum {
   ND_LE, // <=
   ND_LT,  // <
-  ND_GE, // >=
-  ND_GT,  // >
+  //ND_GE, // >=
+  //ND_GT,  // >
   ND_EQ,  // ==
   ND_NE, // !=
   ND_ADD, // +
@@ -227,10 +230,12 @@ Node *relational() {
       node = new_node(ND_LT, node, add());
     else if (consume("<="))
       node = new_node(ND_LE, node, add());
+    //>の場合は両辺入れ替えて<の処理をする
     else if (consume(">"))
-      node = new_node(ND_GT, node, add());
+      node = new_node(ND_LT, add(), node);
+    //>=の場合は両辺入れ替えて<=の処理をする
     else if (consume(">="))
-      node = new_node(ND_GE, node, add());
+      node = new_node(ND_LE, add(), node);
     else
       return node;
   }
@@ -314,7 +319,32 @@ void gen(Node *node) {
     break;
   }
 
-  printf("  push rax\n");
+  if (node->kind == ND_EQ) {
+    printf("  cmp rax, rdi\n");
+    printf("  sete al\n");
+    printf("  movzb rax, al\n");
+  }
+
+  if (node->kind == ND_LT) {
+    printf("  cmp rax, rdi\n");
+    printf("  setl al\n");
+    printf("  movzb rax, al\n");
+  }
+
+   if (node->kind == ND_LE) {
+    printf("  cmp rax, rdi\n");
+    printf("  setle al\n");
+    printf("  movzb rax, al\n");
+  }
+
+   if (node->kind == ND_NE) {
+    printf("  cmp rax, rdi\n");
+    printf("  setne al\n");
+    printf("  movzb rax, al\n");
+  }
+
+
+ printf("  push rax\n");
 }
 
 int main(int argc, char **argv) {
