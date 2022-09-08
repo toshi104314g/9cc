@@ -1,6 +1,7 @@
 
 #include "9cc.h"
 
+//変数のoffsetからメモリアドレスを計算してアドレスをスタックに積む
 void gen_lval(Node *node) {
   if (node->kind != ND_LVAR)
     error("代入の左辺値が変数ではありません");
@@ -15,6 +16,7 @@ switch (node->kind) {
   case ND_NUM:
     printf("  push %d\n", node->val);
     return;
+  //右辺値として計算
   case ND_LVAR:
     gen_lval(node);
     printf("  pop rax\n");
@@ -28,6 +30,7 @@ switch (node->kind) {
     printf("  pop rdi\n");
     printf("  pop rax\n");
     printf("  mov [rax], rdi\n");
+    printf("  sub  rsp, 8\n");
     printf("  push rdi\n");
     return;
   }

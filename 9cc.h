@@ -28,9 +28,6 @@ struct Token {
 // 現在着目しているトークン
 extern Token *token;
 
-// 入力プログラム
-extern char *user_input;
-
 // エラー箇所を報告する
 void error(char *fmt, ...);
 void error_at(char *loc, char *fmt, ...);
@@ -63,6 +60,16 @@ struct Node {
   int offset;    // kindがND_LVARの場合のみ使う
 };
 
+typedef struct LVar LVar;
+
+// ローカル変数の型
+struct LVar {
+  LVar *next; // 次の変数かNULL
+  char *name; // 変数の名前
+  int len;    // 名前の長さ
+  int offset; // RBPからのオフセット
+};
+
 Token *tokenize(char *p);
 
 void program();
@@ -79,3 +86,7 @@ Node *primary();
 void gen(Node *node);
     
 extern Node *code[100];
+
+// ローカル変数
+LVar *locals;
+

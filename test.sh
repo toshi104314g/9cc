@@ -39,8 +39,20 @@ assert 0 ' 3 >=4;'
 assert 1 '1!=0;'
 assert 0 '1!=1;'
 assert 5 'a=5;'
+assert 5 'a=1;2+3;'
+assert 1 'a=1;a;'
+assert 2 'a=1;b=2;'
 assert 1 'a=5; a-4;'
+assert 10 'a=30;b=20;c=10;c;'
+assert 10 'a=30;b=20;a=10;a;'
+assert 30 'a=30;b=20;a;'
+assert 20 'a=30;b=20;a;b;'
+assert 20 'a=30;b=20;c=10;b;'
+assert 5 'a=5;b=3;a;'
 assert 4 'a=1;b=3;a+b;'
+assert 4 'a=1;
+          b=3;
+          a+b;'
 
 echo OK
 
