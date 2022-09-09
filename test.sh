@@ -53,6 +53,13 @@ assert 4 'a=1;b=3;a+b;'
 assert 4 'a=1;
           b=3;
           a+b;'
+assert 5 'A1=2; A2=1; A1 + A2 +2;'
+assert 5 'return 5;'
+assert 10 'a=5; b=2; c=a*b; return c;'
+assert 10 'a=3; b=13; return b-a;'
+assert 5 'if(1 < 2) return 5;'
+assert 5 'if(1 < 2) return 5; else return 10;'
+assert 10 'if(1 > 2) return 5; else return 10;'
 
 echo OK
 

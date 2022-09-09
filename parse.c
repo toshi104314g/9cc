@@ -1,10 +1,18 @@
 
 #include "9cc.h"
 
+//数字かアンダースコアかどうかを判定する関数
+int is_alnum(char c) {
+  return ('a' <= c && c <= 'z') ||
+         ('A' <= c && c <= 'Z') ||
+         ('0' <= c && c <= '9') ||
+         (c == '_');
+}
+
 // 次のトークンが期待している記号のときには、トークンを1つ読み進めて
 // 真を返す。それ以外の場合には偽を返す。
 bool consume(char *op) {
-  if (token->kind != TK_RESERVED || strlen(op) != token->len || memcmp(token->str, op, token->len))
+  if (strlen(op) != token->len || memcmp(token->str, op, token->len))
     return false;
   token = token->next;
   return true;
@@ -77,7 +85,7 @@ Token *tokenize(char *p) {
       if (*(p+1) == '=') {
         cur = new_token(TK_RESERVED, cur, p);
         cur->len = 2;
-        p=p+2;
+        p += 2;
         continue;
       }else {
         cur = new_token(TK_RESERVED, cur, p++);
@@ -91,7 +99,7 @@ Token *tokenize(char *p) {
       if (*(p+1) == '=') {
         cur = new_token(TK_RESERVED, cur, p);
         cur->len = 2;
-        p=p+2;
+        p += 2;
         continue;
       }else {
         cur = new_token(TK_RESERVED, cur, p++);
@@ -105,7 +113,7 @@ Token *tokenize(char *p) {
       if (*(p+1) == '=') {
         cur = new_token(TK_RESERVED, cur, p);
         cur->len = 2;
-        p=p+2;
+        p += 2;
         continue;
       }else {
         cur = new_token(TK_RESERVED, cur, p++);
@@ -127,16 +135,35 @@ Token *tokenize(char *p) {
       continue;
     }
 
-    if ( isalpha(*p) || *p == '_') {
-      cur = new_token(TK_IDENT, cur, p++);
-      for ( cur->len = 1;  isalnum(*p) || *p == '_'; p++)
-        cur->len++; 
+    
+    if (!strncmp(p, "return", 6) && !is_alnum(*(p+6))) {
+      cur = new_token(TK_RETURN, cur, p);
+      cur->len = 6;
+      p += 6;
       continue;
     }
 
-    error_at(token->str,"トークナイズできません");
-  }
+    if (!strncmp(p, "if", 2) && !is_alnum(*(p+2))) {
+      cur = new_token(TK_IF, cur, p);
+      cur->len=2;
+      p += 2;
+      continue;
+    }
 
+    if (!strncmp(p, "else", 4) && !is_alnum(*(p+4))) {
+      cur = new_token(TK_ELSE, cur, p);
+      cur->len=4;
+      p += 4;
+      continue;
+    }
+
+    if ( isalpha(*p) || *p == '_') {
+      cur = new_token(TK_IDENT, cur, p++);
+      for ( cur->len = 1;  is_alnum(*p); p++)
+        cur->len++; 
+      continue;
+    }
+error_at(token->str,"トークナイズできません"); } 
   new_token(TK_EOF, cur, p);
   return head.next;
 }
@@ -164,9 +191,31 @@ void program() {
 } 
 
 Node *stmt() {
-  Node *node = expr();
+  Node *node;
 
-  expect(";");
+  if (consume("return")) {
+    node = calloc(1, sizeof(Node));
+    node->kind = ND_RETURN;
+    node->lhs = expr();
+  } else if (consume("if")) {
+    node = calloc(1, sizeof(Node));
+    node->kind = ND_IF;
+    expect("(");
+    node->lhs = expr();
+    expect(")");
+    Node *exec_node = calloc(1, sizeof(Node));
+    exec_node->kind = ND_IFEXEC;
+    exec_node->lhs = stmt();
+    if (consume("else")) 
+      exec_node->rhs = stmt();
+    node->rhs = exec_node;
+    return node;
+  } else {
+    node = expr();
+  }
+
+  if (!consume(";"))
+    error_at(token->str, "';'ではないトークンです");
   return node;
 }
 

@@ -1,6 +1,8 @@
 
 #include "9cc.h"
 
+int label;
+
 //変数のoffsetからメモリアドレスを計算してアドレスをスタックに積む
 void gen_lval(Node *node) {
   if (node->kind != ND_LVAR)
@@ -13,6 +15,30 @@ void gen_lval(Node *node) {
 
 void gen(Node *node) {
 switch (node->kind) {
+  case ND_RETURN:
+    gen(node->lhs);
+    printf("  pop rax\n");
+    printf("  mov rsp, rbp\n");
+    printf("  pop rbp\n");
+    printf("  ret\n");
+    return;
+  case ND_IF:
+    gen(node->lhs);
+    printf("  pop rax\n");
+    printf("  cmp rax, 0\n");
+    if ((node->rhs)->rhs) {
+      printf("  je .Lelse%d\n", ++label);
+      gen((node->rhs)->lhs);
+      printf("  jmp .Lend%d\n", label);
+      printf(".Lelse%d:\n", label);
+      gen((node->rhs)->rhs);
+      printf(".Lend%d:\n", label);
+    } else {
+      printf("  je .Lend%d\n", ++label);
+      gen((node->rhs)->lhs);
+      printf(".Lend%d:\n", label);
+    } 
+    return;
   case ND_NUM:
     printf("  push %d\n", node->val);
     return;
