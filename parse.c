@@ -157,6 +157,13 @@ Token *tokenize(char *p) {
       continue;
     }
 
+    if (!strncmp(p, "while", 5) && !is_alnum(*(p+4))) {
+      cur = new_token(TK_WHILE, cur, p);
+      cur->len=5;
+      p += 5;
+      continue;
+    }
+
     if ( isalpha(*p) || *p == '_') {
       cur = new_token(TK_IDENT, cur, p++);
       for ( cur->len = 1;  is_alnum(*p); p++)
@@ -210,13 +217,21 @@ Node *stmt() {
       exec_node->rhs = stmt();
     node->rhs = exec_node;
     return node;
-  } else {
+   } else if (consume("while")) {
+    node = calloc(1, sizeof(Node));
+    node->kind = ND_WHILE;
+    expect("(");
+    node->lhs = expr();
+    expect(")");
+    node->rhs = stmt();
+    return node;
+   } else {
     node = expr();
-  }
+   }
 
-  if (!consume(";"))
+   if (!consume(";"))
     error_at(token->str, "';'ではないトークンです");
-  return node;
+   return node;
 }
 
 Node *expr() {

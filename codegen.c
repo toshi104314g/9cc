@@ -39,6 +39,17 @@ switch (node->kind) {
       printf(".Lend%d:\n", label);
     } 
     return;
+  case ND_WHILE:
+    printf(".Lbegin%d:\n", ++label);
+    gen(node->lhs);
+    printf("  pop rax\n");
+    printf("  cmp rax, 0\n");
+    printf("  je .Lend%d\n", label);
+    gen(node->rhs);
+    printf("  jmp .Lbegin%d\n", label);
+    printf("  jmp .Lend%d\n", label);
+    printf(".Lend%d:\n", label);
+    return;
   case ND_NUM:
     printf("  push %d\n", node->val);
     return;

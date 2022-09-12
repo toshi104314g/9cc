@@ -60,6 +60,7 @@ assert 10 'a=3; b=13; return b-a;'
 assert 5 'if(1 < 2) return 5;'
 assert 5 'if(1 < 2) return 5; else return 10;'
 assert 10 'if(1 > 2) return 5; else return 10;'
-
+assert 5  'a=1; if(a+2 >= 3) a = a+4; return a;'
+assert 6 'i=0; while(i <=5) i=i+1; return i;'
 echo OK
 
