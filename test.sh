@@ -16,7 +16,8 @@ assert() {
   fi
 }
 
-assert 0 '0;'
+#assert 1 ',;'
+assert 1 ';'
 assert 42 '42;'
 assert 3 "1+2;"
 assert 21 "5+20-4;"
@@ -62,5 +63,8 @@ assert 5 'if(1 < 2) return 5; else return 10;'
 assert 10 'if(1 > 2) return 5; else return 10;'
 assert 5  'a=1; if(a+2 >= 3) a = a+4; return a;'
 assert 6 'i=0; while(i <=5) i=i+1; return i;'
+assert 6 'for(i=0; i<=5; i=i+1) 1+1; return i;' 
+assert 6 'j=0; for(i=0; i<=5; i=i+1) j=j+1; return j;' 
+assert 5 'for(;;);return 10;'
 echo OK
 

@@ -15,6 +15,10 @@ void gen_lval(Node *node) {
 
 void gen(Node *node) {
 switch (node->kind) {
+  case ND_EMPTY:
+    //ノードを評価した場合は何かしらの値が必要、0にすると比較演算子を通ってしまう
+    printf("  push 1\n");
+    return;
   case ND_RETURN:
     gen(node->lhs);
     printf("  pop rax\n");
@@ -50,6 +54,20 @@ switch (node->kind) {
     printf("  jmp .Lend%d\n", label);
     printf(".Lend%d:\n", label);
     return;
+  case ND_FOR:
+    if (node->lhs->lhs)
+      gen(node->lhs->lhs);
+    printf(".Lbegin%d:\n", ++label);
+    if (node->lhs->rhs)
+      gen(node->lhs->rhs);
+    printf("  pop rax\n");
+    printf("  cmp rax, 0\n");
+    printf("  je .Lend%d\n", label);
+    gen(node->rhs->rhs);
+    if (node->rhs->lhs)
+     gen(node->rhs->lhs);
+    printf("  jmp .Lbegin%d\n", label);
+    printf(".Lend%d:\n", label); 
   case ND_NUM:
     printf("  push %d\n", node->val);
     return;

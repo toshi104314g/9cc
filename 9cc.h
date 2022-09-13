@@ -15,6 +15,7 @@ typedef enum {
   TK_IF,       // if
   TK_ELSE,     // else
   TK_WHILE,    // while
+  TK_FOR,      // for
   TK_EOF,      // 入力の終わりを表すトークン
 } TokenKind;
 
@@ -54,6 +55,9 @@ typedef enum {
   ND_IF, // IF
   ND_IFEXEC, // ifの実行文
   ND_WHILE, // while
+  ND_FOR, // for
+  ND_FORFOLLOW, // for文内の条件式や実行文
+  ND_EMPTY, // 空文
   ND_RETURN, // return
 } NodeKind;
 

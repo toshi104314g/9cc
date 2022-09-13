@@ -157,10 +157,17 @@ Token *tokenize(char *p) {
       continue;
     }
 
-    if (!strncmp(p, "while", 5) && !is_alnum(*(p+4))) {
+    if (!strncmp(p, "while", 5) && !is_alnum(*(p+5))) {
       cur = new_token(TK_WHILE, cur, p);
       cur->len=5;
       p += 5;
+      continue;
+    }
+
+    if (!strncmp(p, "for", 3) && !is_alnum(*(p+3))) {
+      cur = new_token(TK_FOR, cur, p);
+      cur->len=3;
+      p += 3;
       continue;
     }
 
@@ -204,6 +211,7 @@ Node *stmt() {
     node = calloc(1, sizeof(Node));
     node->kind = ND_RETURN;
     node->lhs = expr();
+
   } else if (consume("if")) {
     node = calloc(1, sizeof(Node));
     node->kind = ND_IF;
@@ -217,6 +225,7 @@ Node *stmt() {
       exec_node->rhs = stmt();
     node->rhs = exec_node;
     return node;
+
    } else if (consume("while")) {
     node = calloc(1, sizeof(Node));
     node->kind = ND_WHILE;
@@ -225,6 +234,37 @@ Node *stmt() {
     expect(")");
     node->rhs = stmt();
     return node;
+
+   } else if (consume("for")) {
+    node = calloc(1, sizeof(Node));
+    node->kind = ND_FOR;
+    expect("(");
+    Node *for_init_end = calloc(1, sizeof(Node));
+    for_init_end->kind = ND_FORFOLLOW;
+    if (!consume(";")) {
+      for_init_end->lhs = expr();
+      expect(";");
+    }
+    if (!consume(";")) {
+      for_init_end->rhs = expr();
+      expect(";");
+    }
+    node->lhs = for_init_end;
+    Node *for_iter_exec = calloc(1, sizeof(Node));
+    for_iter_exec->kind = ND_FORFOLLOW;
+    if (!consume(")")) {
+      for_iter_exec->lhs = expr();
+      expect(")");
+    }
+    for_iter_exec->rhs = stmt();
+    node->rhs = for_iter_exec; 
+    return node;
+   
+   } else if (consume(";")) {
+    node = calloc(1, sizeof(Node));
+    node->kind = ND_EMPTY;
+    return node;
+
    } else {
     node = expr();
    }
