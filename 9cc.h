@@ -59,6 +59,7 @@ typedef enum {
   ND_FORFOLLOW, // for文内の条件式や実行文
   ND_EMPTY, // 空文
   ND_RETURN, // return
+  ND_BLOCK, // ブロック{ ... }
 } NodeKind;
 
 typedef struct Node Node;

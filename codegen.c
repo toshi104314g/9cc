@@ -16,9 +16,14 @@ void gen_lval(Node *node) {
 void gen(Node *node) {
 switch (node->kind) {
   case ND_EMPTY:
-    //ノードを評価した場合は何かしらの値が必要、0にすると比較演算子を通ってしまう
+    //ノードを評価した場合は何かしらの値が必要
+    //0にすると比較演算子を通ってしまうので1とする
     printf("  push 1\n");
     return;
+  case ND_BLOCK:
+    for (Node *cur = node; cur->rhs ; cur=cur->rhs)
+      gen(cur->lhs);
+    return; 
   case ND_RETURN:
     gen(node->lhs);
     printf("  pop rax\n");

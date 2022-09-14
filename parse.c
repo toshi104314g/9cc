@@ -123,7 +123,8 @@ Token *tokenize(char *p) {
     }
  
     if (*p == '+' || *p == '-' || *p == '*' || *p == '/'
-	|| *p == '(' || *p == ')' || *p == ';') {
+	|| *p == '(' || *p == ')' || *p == ';' || *p == '{'
+        || *p == '}') {
       cur = new_token(TK_RESERVED, cur, p++);
       cur->len = 1;
       continue;
@@ -265,6 +266,20 @@ Node *stmt() {
    } else if (consume(";")) {
     node = calloc(1, sizeof(Node));
     node->kind = ND_EMPTY;
+    return node;
+
+   } else if (consume("{")) {
+    node = calloc(1, sizeof(Node));
+    node->kind = ND_BLOCK;
+    Node *cur = node;
+    while(!consume("}")) {
+      if (at_eof()) 
+        error("}が閉じられていません");
+      cur->lhs = stmt();
+      cur->rhs = calloc(1, sizeof(Node));
+      cur = cur->rhs;
+      cur->rhs = NULL;
+    } 
     return node;
 
    } else {
