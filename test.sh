@@ -4,7 +4,7 @@ assert() {
   input="$2"
 
   ./9cc "$input" > tmp.s
-  cc -o tmp tmp.s
+  cc -o tmp tmp.s test.o
   ./tmp
   actual="$?"
 
@@ -69,5 +69,7 @@ assert 6 'i=0; for(; i<=5; ) i = i+1; return i;'
 assert 6 'j=0; for(i=0; i<=5; i=i+1) j=j+1; return j;' 
 assert 10 '{return 10;}'
 assert 20 'j=0; for (i=1; i<=5; i=i+1) {j = j+i; k =i;} return j+k;' 
+assert 0 'foo();return 0;'
+
 echo OK
 

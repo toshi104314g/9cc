@@ -124,7 +124,7 @@ Token *tokenize(char *p) {
  
     if (*p == '+' || *p == '-' || *p == '*' || *p == '/'
 	|| *p == '(' || *p == ')' || *p == ';' || *p == '{'
-        || *p == '}') {
+        || *p == '}' || *p == ',') {
       cur = new_token(TK_RESERVED, cur, p++);
       cur->len = 1;
       continue;
@@ -380,11 +380,10 @@ Node *primary() {
     return node;
   }
 
-  // 次のトークンがローカル変数(識別子)の場合
+  // 次のトークンが識別子の場合（変数or関数）
   Token *tok = consume_ident();
   if (tok) {
     Node *node = calloc(1, sizeof(Node));
-    node->kind = ND_LVAR;
   
     LVar *lvar = find_lvar(tok);
     if (lvar) {
@@ -401,6 +400,18 @@ Node *primary() {
       node->offset = lvar->offset;
       locals = lvar;
     }
+    //関数の場合 
+    if (consume("(")) {
+      node->kind = ND_FUNC;
+      node->name = tok->str;
+      node->len = tok->len;
+      if (!consume(")")) {
+      }
+      //expect(")");
+      return node;
+    }
+    //変数の場合
+    node->kind = ND_LVAR;
     return node;
   }
 

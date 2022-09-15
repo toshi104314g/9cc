@@ -14,6 +14,9 @@ void gen_lval(Node *node) {
 }
 
 void gen(Node *node) {
+
+char *func_name;
+
 switch (node->kind) {
   case ND_EMPTY:
     //ノードを評価した場合は何かしらの値が必要
@@ -92,6 +95,10 @@ switch (node->kind) {
     printf("  mov [rax], rdi\n");
     printf("  sub  rsp, 8\n");
     printf("  push rdi\n");
+    return;
+  case ND_FUNC:
+    memcpy(func_name, node->name, node->len);
+    printf("  call %s\n", func_name);
     return;
   }
 

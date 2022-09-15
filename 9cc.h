@@ -60,6 +60,7 @@ typedef enum {
   ND_EMPTY, // 空文
   ND_RETURN, // return
   ND_BLOCK, // ブロック{ ... }
+  ND_FUNC, // 関数
 } NodeKind;
 
 typedef struct Node Node;
@@ -71,6 +72,8 @@ struct Node {
   Node *rhs;     // 右辺
   int val;       // kindがND_NUMの場合のみ使う
   int offset;    // kindがND_LVARの場合のみ使う
+  char *name;    // kindがND_FUNCの場合のみ使う
+  int len;       // kindがND_FUNCの場合のみ使う
 };
 
 typedef struct LVar LVar;
