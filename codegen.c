@@ -16,6 +16,7 @@ void gen_lval(Node *node) {
 void gen(Node *node) {
 
 char *func_name;
+Node *cur;
 
 switch (node->kind) {
   case ND_EMPTY:
@@ -97,7 +98,14 @@ switch (node->kind) {
     printf("  push rdi\n");
     return;
   case ND_FUNC:
-    memcpy(func_name, node->name, node->len);
+    cur = node; 
+    if (cur->rhs) {
+      cur = cur->rhs;
+      gen(cur->lhs);
+      printf("  pop rdi\n");
+    }
+    func_name = malloc(sizeof(char)*node->len);
+    memmove(func_name, node->name, node->len);
     printf("  call %s\n", func_name);
     return;
   }

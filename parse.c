@@ -405,9 +405,17 @@ Node *primary() {
       node->kind = ND_FUNC;
       node->name = tok->str;
       node->len = tok->len;
+      node->lhs = NULL;
+      node->rhs = NULL;
       if (!consume(")")) {
+        node->rhs = new_node(ND_FUNC, expr(), NULL);
+        Node *cur = node->rhs;
+        while (!consume(")")) {
+          expect(",");
+          cur->rhs = new_node(ND_FUNC, expr(), NULL);
+          cur = cur->rhs;
+        }
       }
-      //expect(")");
       return node;
     }
     //変数の場合
