@@ -60,7 +60,8 @@ typedef enum {
   ND_EMPTY, // 空文
   ND_RETURN, // return
   ND_BLOCK, // ブロック{ ... }
-  ND_FUNC, // 関数
+  ND_FUNC, // 関数呼び出し
+  ND_FUNCDEF, // 関数定義
 } NodeKind;
 
 typedef struct Node Node;
@@ -88,7 +89,9 @@ struct LVar {
 
 Token *tokenize(char *p);
 
+
 void program();
+Node *func();
 Node *stmt();
 Node *expr();
 Node *assign();

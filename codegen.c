@@ -94,20 +94,95 @@ switch (node->kind) {
     printf("  pop rdi\n");
     printf("  pop rax\n");
     printf("  mov [rax], rdi\n");
-    printf("  sub  rsp, 8\n");
+    printf("  sub  rsp, 8\n");//同じ変数であっても代入する度にスタックポインタの基準が下がり続ける問題
     printf("  push rdi\n");
     return;
   case ND_FUNC:
-    cur = node; 
-    if (cur->rhs) {
-      cur = cur->rhs;
-      gen(cur->lhs);
-      printf("  pop rdi\n");
-    }
     func_name = malloc(sizeof(char)*node->len);
     memmove(func_name, node->name, node->len);
-    printf("  call %s\n", func_name);
-    return;
+    cur = node; 
+    if (node->lhs) {
+    //関数定義の場合
+      printf("%s:\n", func_name);
+      printf("  push rbp\n");
+      printf("  mov rbp, rsp\n");
+      if (cur->rhs) {
+        cur = cur->rhs;
+	gen_lval(cur->lhs);
+	printf("  pop rax\n");
+	printf("  mov [rax], rdi\n");
+	if (cur->rhs) {
+          cur = cur->rhs;
+  	  gen_lval(cur->lhs);
+  	  printf("  pop rax\n");
+  	  printf("  mov [rax], rsi\n");
+	  if (cur->rhs) {
+            cur = cur->rhs;
+  	    gen_lval(cur->lhs);
+  	    printf("  pop rax\n");
+  	    printf("  mov [rax], rdx\n");
+  	    if (cur->rhs) {
+              cur = cur->rhs;
+    	      gen_lval(cur->lhs);
+    	      printf("  pop rax\n");
+    	      printf("  mov [rax], rcx\n");
+  	      if (cur->rhs) {
+                cur = cur->rhs;
+    	        gen_lval(cur->lhs);
+    	        printf("  pop rax\n");
+    	        printf("  mov [rax], r8\n");
+  	        if (cur->rhs) {
+                  cur = cur->rhs;
+    	          gen_lval(cur->lhs);
+    	          printf("  pop rax\n");
+    	          printf("  mov [rax], r9\n");
+                }
+              }
+            }
+          }
+        }
+      }
+      Node *stmt = node;
+      while(stmt->lhs) {
+        stmt = stmt->lhs;
+        gen(stmt->rhs);
+      }
+      return;
+    } else {
+    //関数呼び出しの場合
+      if (cur->rhs) {
+        cur = cur->rhs;
+        gen(cur->lhs);
+        printf("  pop rdi\n");
+        if (cur->rhs) {
+          cur = cur->rhs;
+          gen(cur->lhs);
+          printf("  pop rsi\n");
+          if (cur->rhs) {
+            cur = cur->rhs;
+            gen(cur->lhs);
+            printf("  pop rdx\n");
+            if (cur->rhs) {
+              cur = cur->rhs;
+              gen(cur->lhs);
+              printf("  pop rcx\n");
+              if (cur->rhs) {
+                cur = cur->rhs;
+                gen(cur->lhs);
+                printf("  pop r8\n");
+                if (cur->rhs) {
+                  cur = cur->rhs;
+                  gen(cur->lhs);
+                  printf("  pop r9\n");
+     	        }
+     	      }
+     	    }
+          }
+        }
+      }
+      printf("  call %s\n", func_name);
+      return;
+    }
   }
 
   gen(node->lhs);

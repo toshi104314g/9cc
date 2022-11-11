@@ -1,6 +1,21 @@
 
 #include "9cc.h"
 
+Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
+  Node *node = calloc(1, sizeof(Node));
+  node->kind = kind;
+  node->lhs = lhs;
+  node->rhs = rhs;
+  return node;
+}
+
+Node *new_node_num(int val) {
+  Node *node = calloc(1, sizeof(Node));
+  node->kind = ND_NUM;
+  node->val = val;
+  return node;
+}
+
 //数字かアンダースコアかどうかを判定する関数
 int is_alnum(char c) {
   return ('a' <= c && c <= 'z') ||
@@ -26,6 +41,16 @@ Token *consume_ident() {
   Token *ident_token = token;
   token = token->next;
   return ident_token; 
+}
+
+// 次のトークンが識別子の場合、トークンを返却し、トークンを1つ読み進める。
+// それ以外の場合にはエラーを返す。
+Token *expect_ident() {
+  if (token->kind != TK_IDENT)
+    error_at(token->str,"識別子ではありません");
+  Token *ident_token = token;
+  token = token->next;
+  return ident_token;
 }
 
 // 次のトークンが期待している記号のときには、トークンを1つ読み進める。
@@ -58,8 +83,38 @@ bool at_eof() {
   return token->kind == TK_EOF;
 }
 
+void set_offset(Token *tok, LVar *lvar, Node* node) {
+  if (lvar) {
+    node->offset = lvar->offset;
+  } else {
+    lvar = calloc(1, sizeof(LVar));
+    lvar->next = locals;
+    lvar->name = tok->str;
+    lvar->len = tok->len;
+    if (locals) 
+      lvar->offset = locals->offset + 8;
+    else
+      lvar->offset = 8;
+    node->offset = lvar->offset;
+    locals = lvar;
+  }
+}
 
-// 新しいトークンを作成してcurに繋げる
+void *set_args(Node* node) {
+  expect("("); 
+  if (!consume(")")) {
+    Node *cur = new_node(ND_FUNC, expr(), NULL);
+    node->rhs = cur;
+    while (!consume(")")) {
+      expect(",");
+      cur->rhs = new_node(ND_FUNC, expr(), NULL);
+      cur = cur->rhs;
+    }
+  }
+}
+
+
+ // 新しいトークンを作成してcurに繋げる
 Token *new_token(TokenKind kind, Token *cur, char *str) {
   Token *tok = calloc(1, sizeof(Token));
   tok->kind = kind;
@@ -185,27 +240,45 @@ Token *tokenize(char *p) {
   return head.next;
 }
 
-Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
-  Node *node = calloc(1, sizeof(Node));
-  node->kind = kind;
-  node->lhs = lhs;
-  node->rhs = rhs;
-  return node;
-}
-
-Node *new_node_num(int val) {
-  Node *node = calloc(1, sizeof(Node));
-  node->kind = ND_NUM;
-  node->val = val;
-  return node;
-}
-
 void program() {
   int i = 0;
   while (!at_eof())
-    code[i++] = stmt();
+    code[i++] = func();
   code[i] = NULL;
 } 
+
+Node *func() {
+  Node *node = new_node(ND_FUNC, NULL, NULL);
+
+  Token *tok = consume_ident();
+  if(tok) {
+    LVar *lvar = find_lvar(tok);
+    set_offset(tok, lvar, node);
+    node->name = tok->str;
+    node->len = tok->len;
+    
+    //関数定義の仮引数にx+yや10みたいなのが許されてしまう
+    set_args(node);
+    expect("{");
+    if (!consume("}")) {
+      Node *cur = new_node(ND_FUNC, NULL, stmt());
+      node->lhs = cur;
+      while (!consume("}")) {
+        cur->lhs = new_node(ND_FUNC, NULL, stmt());
+        cur = cur->lhs;
+      }
+    } else {
+        node->lhs = new_node(ND_FUNC, NULL, new_node(ND_EMPTY, NULL, NULL));
+    }
+    return node;
+  } else if (consume(";")) {
+    node = calloc(1, sizeof(Node));
+    node->kind = ND_EMPTY;
+    return node;
+  } else {
+    error_at(token->str, "関数ではありません");
+  }
+}  
 
 Node *stmt() {
   Node *node;
@@ -386,38 +459,18 @@ Node *primary() {
     Node *node = calloc(1, sizeof(Node));
   
     LVar *lvar = find_lvar(tok);
-    if (lvar) {
-      node->offset = lvar->offset;
-    } else {
-      lvar = calloc(1, sizeof(LVar));
-      lvar->next = locals;
-      lvar->name = tok->str;
-      lvar->len = tok->len;
-      if (locals) 
-        lvar->offset = locals->offset + 8;
-      else
-        lvar->offset = 8;
-      node->offset = lvar->offset;
-      locals = lvar;
-    }
+    set_offset(tok, lvar, node);
+
     //関数の場合 
-    if (consume("(")) {
+    if (!(strlen("(") != token->len || 
+        memcmp(token->str, "(", token->len))) {
       node->kind = ND_FUNC;
       node->name = tok->str;
       node->len = tok->len;
-      node->lhs = NULL;
-      node->rhs = NULL;
-      if (!consume(")")) {
-        node->rhs = new_node(ND_FUNC, expr(), NULL);
-        Node *cur = node->rhs;
-        while (!consume(")")) {
-          expect(",");
-          cur->rhs = new_node(ND_FUNC, expr(), NULL);
-          cur = cur->rhs;
-        }
-      }
+      set_args(node);
       return node;
     }
+
     //変数の場合
     node->kind = ND_LVAR;
     return node;
