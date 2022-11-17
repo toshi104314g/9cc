@@ -1,7 +1,8 @@
 
 #include "9cc.h"
 
-int label;
+
+int label = 0;
 
 //変数のoffsetからメモリアドレスを計算してアドレスをスタックに積む
 void gen_lval(Node *node) {
@@ -181,6 +182,7 @@ switch (node->kind) {
         }
       }
       printf("  call %s\n", func_name);
+      printf("  push rax\n");
       return;
     }
   }

@@ -6,8 +6,14 @@ Node *code[100];
 //ローカル変数
 LVar *locals;
 
+//関数名のリスト
+LVar *functions;
+
 // 現在着目しているトークン
 Token *token;
+
+// ローカル変数のスタックオフセット
+int offset;
 
 // 入力プログラム
 char *user_input;
@@ -55,10 +61,10 @@ int main(int argc, char **argv) {
   // プロローグ
   //  printf("  push rbp\n");
   //  printf("  mov rbp, rsp\n");
-    printf("  jmp main\n");
   
     // 先頭の式から順にコード生成
     for (int i = 0; code[i]; i++) {
+      offset = 0;
       gen(code[i]);
  
       // 式の評価結果としてスタックに一つの値が残っている

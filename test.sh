@@ -19,7 +19,12 @@ assert() {
 #assert 1 ',;'
 assert 100 'main(){return 100;}'
 assert 100 'main(){x=100; return x;}'
-assert 100 'add(){return 100;} main(){x= add(); return x;}'
+assert 11  'main() {x=1;for(i=1; i<5;i=i+1) {x=i+x;}; return x;}'
+assert 10 'add(){return 100;} main(){x= 10; return x;}'
+assert 10 'plus(){return 100;} main(){plus(); return 10;}'
+assert 100 'plus(){return 100;} main(){return plus();}'
+assert 10 'plus(){return 100;} main(){x= plus(); return 10;}'
+assert 100 'plus(){return 100;} main(){x= plus(); return x;}'
 assert 100 'add(x,y) {return x+y;}; main(){return add(10,90);};'
 #assert 42 '42;'
 #assert 3 "1+2;"

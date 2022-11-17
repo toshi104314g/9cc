@@ -107,5 +107,6 @@ void gen(Node *node);
 extern Node *code[100];
 
 // ローカル変数
-LVar *locals;
-
+extern LVar *locals;
+// 定義した関数の名前
+extern LVar *functions;

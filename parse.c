@@ -73,9 +73,15 @@ int expect_number() {
 
 // 変数を名前で検索する。見つからなかった場合はNULLを返す。
 LVar *find_lvar(Token *tok) {
+  for (LVar *var = functions; var; var = var->next)
+    if (var->len == tok->len && !memcmp(tok->str, var->name, var->len)) {
+       return var; 
+    }
   for (LVar *var = locals; var; var = var->next)
-    if (var->len == tok->len && !memcmp(tok->str, var->name, var->len))
+    if (var->len == tok->len && !memcmp(tok->str, var->name, var->len)) {
       return var;
+    }
+//printf("%s(%d) was NOT found\n", tok->str,tok->len);
   return NULL;
 }
 
@@ -83,9 +89,25 @@ bool at_eof() {
   return token->kind == TK_EOF;
 }
 
+void remember_functions(Token *tok, LVar *lvar, Node* node) {
+  if (!lvar) {
+    lvar = calloc(1, sizeof(LVar));
+    lvar->next = functions;
+    lvar->name = tok->str;
+    lvar->len = tok->len;
+    functions = lvar;
+  }
+}
+
 void set_offset(Token *tok, LVar *lvar, Node* node) {
   if (lvar) {
-    node->offset = lvar->offset;
+    //他の関数で同じ文字を既に使用していたときはポインタを流用
+    if (lvar->offset == 0) {
+          lvar->offset = locals->offset + 8;
+    } else {
+        node->offset = lvar->offset;
+//printf("%d\n", node->offset);
+    }
   } else {
     lvar = calloc(1, sizeof(LVar));
     lvar->next = locals;
@@ -95,6 +117,7 @@ void set_offset(Token *tok, LVar *lvar, Node* node) {
       lvar->offset = locals->offset + 8;
     else
       lvar->offset = 8;
+//printf("set offset\n");
     node->offset = lvar->offset;
     locals = lvar;
   }
@@ -253,7 +276,8 @@ Node *func() {
   Token *tok = consume_ident();
   if(tok) {
     LVar *lvar = find_lvar(tok);
-    set_offset(tok, lvar, node);
+//関数の名前を持ったグローバル変数のリストへ
+    remember_functions(tok, lvar, node);
     node->name = tok->str;
     node->len = tok->len;
     
@@ -324,11 +348,11 @@ Node *stmt() {
     if (!consume(";")) {
       for_init_end->rhs = expr();
       expect(";");
-    }
+	    }
     node->lhs = for_init_end;
     Node *for_iter_exec = calloc(1, sizeof(Node));
-    for_iter_exec->kind = ND_FORFOLLOW;
-    if (!consume(")")) {
+	    for_iter_exec->kind = ND_FORFOLLOW;
+	    if (!consume(")")) {
       for_iter_exec->lhs = expr();
       expect(")");
     }
@@ -459,7 +483,6 @@ Node *primary() {
     Node *node = calloc(1, sizeof(Node));
   
     LVar *lvar = find_lvar(tok);
-    set_offset(tok, lvar, node);
 
     //関数の場合 
     if (!(strlen("(") != token->len || 
@@ -472,6 +495,7 @@ Node *primary() {
     }
 
     //変数の場合
+    set_offset(tok, lvar, node);
     node->kind = ND_LVAR;
     return node;
   }
