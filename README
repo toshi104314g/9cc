@@ -1,2 +1,5 @@
 次のサイトを参考に作成中のCコンパイラ
 https://www.sigbus.info/compilerbook
+
+Linuxで動作確認
+$make test
