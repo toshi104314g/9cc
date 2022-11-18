@@ -32,6 +32,10 @@ assert 100 'plus(x){return x;} main(){return plus(100);}'
 assert 100 'plus(x){return x;} main(){y = plus(100);return y;}'
 assert 100 'plus(x){return x+5;} main(){return plus(95);}'
 assert 100 'add(x,y) {return x+y;}; main(){return add(10,90);};'
+assert 1  'fib(n) {if (n == 1) {return 1;} else if (n ==2) {return 2;} else {return fib(n-1) + fib(n-2);}} main() {return fib(1);}'
+assert 1 'fib(n) {if (n == 1) {return 1;} else if (n ==2) {return 2;} else {return fib(n-1) + fib(n-2);}} main() {return fib(2);}'
+assert 2 'fib(n) {if (n == 1) {return 1;} else if (n ==2) {return 2;} else {return fib(n-1) + fib(n-2);}} main() {return fib(3);}'
+assert 21 'fib(n) {if (n == 1) {return 1;} else if (n ==2) {return 2;} else {return fib(n-1) + fib(n-2);}} main() {return fib(8);}'
 #assert 42 '42;'
 #assert 3 "1+2;"
 #assert 21 "5+20-4;"
