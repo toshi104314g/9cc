@@ -81,7 +81,6 @@ LVar *find_lvar(Token *tok) {
     if (var->len == tok->len && !memcmp(tok->str, var->name, var->len)) {
       return var;
     }
-//printf("%s(%d) was NOT found\n", tok->str,tok->len);
   return NULL;
 }
 
@@ -111,7 +110,6 @@ void set_offset(Token *tok, LVar *lvar, Node* node) {
       lvar->offset = locals->offset + 8;
     else
       lvar->offset = 8;
-//printf("set offset\n");
     node->offset = lvar->offset;
     locals = lvar;
   }
