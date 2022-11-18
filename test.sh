@@ -4,7 +4,7 @@ assert() {
   input="$2"
 
   ./9cc "$input" > tmp.s
-  cc -o tmp tmp.s test.o
+  cc -o tmp tmp.s ext_functions.o
   ./tmp
   actual="$?"
 
