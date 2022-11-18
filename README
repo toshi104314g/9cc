@@ -1,5 +1,25 @@
 次のサイトを参考に作成中のCコンパイラ
 https://www.sigbus.info/compilerbook
 
-Linuxで動作確認
+Cのプログラムコードを入力に（機能拡張中）、x86-64アセンブリコードを出力する
+
+VirtualBox上のAlma Linux8で動作確認
 $make test
+
+main.c
+main関数を含むファイル
+
+parse.c
+入力プログラムをパースし、構文木を作成する
+
+codegen.c
+構文木からアセンブリコードを出力する
+
+9cc.h
+ヘッダファイル
+
+ext_functions.c
+テストで呼び出したい外部の自作Cの関数を定義する
+
+test.sh
+コンパイラのテストコード
