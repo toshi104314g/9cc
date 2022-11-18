@@ -101,13 +101,7 @@ void remember_functions(Token *tok, LVar *lvar, Node* node) {
 
 void set_offset(Token *tok, LVar *lvar, Node* node) {
   if (lvar) {
-    //他の関数で同じ文字を既に使用していたときはポインタを流用
-    if (lvar->offset == 0) {
-          lvar->offset = locals->offset + 8;
-    } else {
-        node->offset = lvar->offset;
-//printf("%d\n", node->offset);
-    }
+    node->offset = lvar->offset;
   } else {
     lvar = calloc(1, sizeof(LVar));
     lvar->next = locals;
@@ -123,7 +117,7 @@ void set_offset(Token *tok, LVar *lvar, Node* node) {
   }
 }
 
-void *set_args(Node* node) {
+void *throw_args(Node* node) {
   expect("("); 
   if (!consume(")")) {
     Node *cur = new_node(ND_FUNC, expr(), NULL);
@@ -136,6 +130,33 @@ void *set_args(Node* node) {
   }
 }
 
+void *receive_args(Node* node) {
+  expect("("); 
+  if (! consume(")")) {
+    Token *tok;
+    if (tok = consume_ident()) {
+      Node *var_node = new_node(ND_LVAR, NULL, NULL);
+      LVar *lvar = find_lvar(tok);
+      set_offset(tok, lvar, var_node);
+      Node *cur = new_node(ND_FUNC, var_node, NULL);
+      node->rhs = cur;
+      while (!consume(")")) {
+        expect(",");
+        if (tok = consume_ident()) {
+          var_node = new_node(ND_LVAR, NULL, NULL);
+          lvar = find_lvar(tok);
+          set_offset(tok, lvar, var_node);
+          cur->rhs = new_node(ND_FUNC, var_node, NULL);
+          cur = cur->rhs;
+        } else {
+          error("変数ではありません");
+        }
+      } 
+    } else {
+        error("変数ではありません");
+    }
+  }
+}
 
  // 新しいトークンを作成してcurに繋げる
 Token *new_token(TokenKind kind, Token *cur, char *str) {
@@ -273,16 +294,18 @@ void program() {
 Node *func() {
   Node *node = new_node(ND_FUNC, NULL, NULL);
 
+//ローカル変数の初期化（メモリリークする）
+  locals = NULL;
   Token *tok = consume_ident();
   if(tok) {
     LVar *lvar = find_lvar(tok);
-//関数の名前を持ったグローバル変数のリストへ
+    //関数の名前を持ったグローバル変数のリストへ
     remember_functions(tok, lvar, node);
     node->name = tok->str;
     node->len = tok->len;
     
-    //関数定義の仮引数にx+yや10みたいなのが許されてしまう
-    set_args(node);
+    //関数定義の仮引数にx+yみたいなのが許されてしまう
+    receive_args(node);
     expect("{");
     if (!consume("}")) {
       Node *cur = new_node(ND_FUNC, NULL, stmt());
@@ -490,7 +513,7 @@ Node *primary() {
       node->kind = ND_FUNC;
       node->name = tok->str;
       node->len = tok->len;
-      set_args(node);
+      throw_args(node);
       return node;
     }
 

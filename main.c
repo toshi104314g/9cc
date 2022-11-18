@@ -12,9 +12,6 @@ LVar *functions;
 // 現在着目しているトークン
 Token *token;
 
-// ローカル変数のスタックオフセット
-int offset;
-
 // 入力プログラム
 char *user_input;
 
@@ -64,7 +61,6 @@ int main(int argc, char **argv) {
   
     // 先頭の式から順にコード生成
     for (int i = 0; code[i]; i++) {
-      offset = 0;
       gen(code[i]);
  
       // 式の評価結果としてスタックに一つの値が残っている

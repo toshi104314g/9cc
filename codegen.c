@@ -112,31 +112,37 @@ switch (node->kind) {
 	gen_lval(cur->lhs);
 	printf("  pop rax\n");
 	printf("  mov [rax], rdi\n");
+        printf("  sub  rsp, 8\n");
 	if (cur->rhs) {
           cur = cur->rhs;
   	  gen_lval(cur->lhs);
   	  printf("  pop rax\n");
   	  printf("  mov [rax], rsi\n");
+          printf("  sub  rsp, 8\n");
 	  if (cur->rhs) {
             cur = cur->rhs;
   	    gen_lval(cur->lhs);
   	    printf("  pop rax\n");
   	    printf("  mov [rax], rdx\n");
+            printf("  sub  rsp, 8\n");
   	    if (cur->rhs) {
               cur = cur->rhs;
     	      gen_lval(cur->lhs);
     	      printf("  pop rax\n");
     	      printf("  mov [rax], rcx\n");
+              printf("  sub  rsp, 8\n");
   	      if (cur->rhs) {
                 cur = cur->rhs;
     	        gen_lval(cur->lhs);
     	        printf("  pop rax\n");
     	        printf("  mov [rax], r8\n");
+                printf("  sub  rsp, 8\n");
   	        if (cur->rhs) {
                   cur = cur->rhs;
     	          gen_lval(cur->lhs);
     	          printf("  pop rax\n");
     	          printf("  mov [rax], r9\n");
+                  printf("  sub  rsp, 8\n");
                 }
               }
             }
