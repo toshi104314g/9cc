@@ -36,6 +36,8 @@ assert 1  'fib(n) {if (n == 1) {return 1;} if (n ==2) {return 1;} return fib(n-1
 assert 1 'fib(n) {if (n == 1) {return 1;}  if (n ==2) {return 1;}  {return fib(n-1) + fib(n-2);}} main() {return fib(2);}'
 assert 2 'fib(n) {if (n == 1) {return 1;}  if (n ==2) {return 1;}  {return fib(n-1) + fib(n-2);}} main() {return fib(3);}'
 assert 21 'fib(n) {if (n == 1) {return 1;}  if (n ==2) {return 1;}  {return fib(n-1) + fib(n-2);}} main() {return fib(8);}'
+assert 3 'main(){x = 3; y = &x; return *y;}'
+assert 3 'main(){x=3; y=5; z=&y+8; return *z;}' 
 #assert 42 '42;'
 #assert 3 "1+2;"
 #assert 21 "5+20-4;"
