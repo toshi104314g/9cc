@@ -12,6 +12,7 @@ typedef enum {
   TK_IDENT,    // 識別子
   TK_NUM,      // 整数トークン
   TK_RETURN,   // return
+  TK_DECLARE,  // 変数型
   TK_IF,       // if
   TK_ELSE,     // else
   TK_WHILE,    // while

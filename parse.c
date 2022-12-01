@@ -61,6 +61,15 @@ void expect(char *op) {
   token = token->next;
 }
 
+// 次のトークンが期待している型かつ文字列のとき、トークンを1つ読み進める。
+// それ以外の場合にはエラーを報告する。
+void expect_with_type(char *op,TokenKind kind) {
+  if (token->kind != kind || strlen(op) != token->len || memcmp(token->str, op, token->len))
+    error_at(token->str,"'%c'ではありません", op);
+  token = token->next;
+}
+
+
 // 次のトークンが数値の場合、トークンを1つ読み進めてその数値を返す。
 // それ以外の場合にはエラーを報告する。
 int expect_number() {
@@ -132,6 +141,7 @@ void *receive_args(Node* node) {
   expect("("); 
   if (! consume(")")) {
     Token *tok;
+    expect_with_type("int",TK_DECLARE);
     if (tok = consume_ident()) {
       Node *var_node = new_node(ND_LVAR, NULL, NULL);
       LVar *lvar = find_lvar(tok);
@@ -140,6 +150,7 @@ void *receive_args(Node* node) {
       node->rhs = cur;
       while (!consume(")")) {
         expect(",");
+        expect_with_type("int",TK_DECLARE);
         if (tok = consume_ident()) {
           var_node = new_node(ND_LVAR, NULL, NULL);
           lvar = find_lvar(tok);
@@ -269,6 +280,13 @@ Token *tokenize(char *p) {
       continue;
     }
 
+    if (!strncmp(p, "int", 3) && !is_alnum(*(p+3))) {
+      cur = new_token(TK_DECLARE, cur, p);
+      cur->len=3;
+      p += 3;
+      continue;
+    }
+
     if ( isalpha(*p) || *p == '_') {
       cur = new_token(TK_IDENT, cur, p++);
       for ( cur->len = 1;  is_alnum(*p); p++)
@@ -292,11 +310,13 @@ void program() {
 Node *func() {
   Node *node = new_node(ND_FUNC, NULL, NULL);
 
-//ローカル変数の初期化（メモリリークする）
+//ローカル変数の初期化（コンパイラ側のメモリリークはする）
   locals = NULL;
+
+  expect_with_type("int",TK_DECLARE);
   Token *tok = consume_ident();
   if(tok) {
-    LVar *lvar = find_lvar(tok);
+    LVar *lvar = NULL;
     //関数の名前を持ったグローバル変数のリストへ
     remember_functions(tok, lvar, node);
     node->name = tok->str;
@@ -332,6 +352,20 @@ Node *stmt() {
     node = calloc(1, sizeof(Node));
     node->kind = ND_RETURN;
     node->lhs = expr();
+
+  } else if (consume("int")) {
+    Token *tok = consume_ident();
+    if (tok) {
+      Node *node = calloc(1, sizeof(Node));
+      LVar *lvar = find_lvar(tok);
+      if(lvar) {
+        error("宣言済みの変数の再宣言があります");
+      } else {
+        set_offset(tok, lvar, node);
+        node->kind = ND_LVAR;
+        return node;
+      }
+    }
 
   } else if (consume("if")) {
     node = calloc(1, sizeof(Node));
@@ -520,9 +554,13 @@ Node *primary() {
     }
 
     //変数の場合
-    set_offset(tok, lvar, node);
-    node->kind = ND_LVAR;
-    return node;
+    if(lvar == NULL) {
+      error("未宣言の変数があります");
+    } else {
+      set_offset(tok, lvar, node);
+      node->kind = ND_LVAR;
+      return node;
+    }
   }
 
   // そうでなければ数値のはず
